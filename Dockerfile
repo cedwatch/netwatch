@@ -1,30 +1,23 @@
 FROM node:18-slim
 WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Ookla speedtest CLI from official Debian package
-RUN curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash && \
-    apt-get install -y speedtest && \
-    mkdir -p /app/bin && \
-    cp $(which speedtest) /app/bin/speedtest && \
+# Install only wget and ca-certificates (minimal)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy server
+# Copy server and init script
 COPY server.js .
+COPY docker-init.sh .
+RUN chmod +x docker-init.sh
 
-# Data directory (mounted as volume in production)
-RUN mkdir -p /data
+# Data and bin directories
+RUN mkdir -p /data /app/bin
 
 EXPOSE 5217
 
 ENV NETWATCH_PORT=5217
 ENV NETWATCH_DATA=/data
 
-CMD ["node", "server.js"]
-
+# Init script downloads Ookla at first run, then starts server
+CMD ["bash", "docker-init.sh"]
