@@ -1,0 +1,15 @@
+[Unit]
+Description=NetWatch ISP Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=%%NW_USER%%
+WorkingDirectory=%%NW_DIR%%
+ExecStart=%%NW_NODE%% %%NW_DIR%%/server.js
+Restart=always
+RestartSec=5
+Environment=NETWATCH_PORT=%%NW_PORT%%
+
+[Install]
+WantedBy=multi-user.target
